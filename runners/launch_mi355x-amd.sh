@@ -85,8 +85,8 @@ if ls gpucore.* 1> /dev/null 2>&1; then
 fi
 
 
-while [ -n "$(docker ps -aq)" ]; do
-    docker stop $server_name
+#while [ -n "$(docker ps -aq)" ]; do
+    docker container rm -f $server_name
     docker network rm $network_name
-    sleep 5
-done
+    sleep 15
+#done

@@ -49,21 +49,20 @@ for tp in 8; do
     export EXP_NAME="${exp_name}"
     export EXP_NAME_LONG="${exp_name}_${ISL:0:1}k${OSL:0:1}k"
 
+    mkdir -p results/${IMAGESHORTNAME}/${EXP_NAME}
 
     for CONC in 4 8 16 32 64; do
         export RESULT_FILENAME=${EXP_NAME_LONG}_${PRECISION}_${FRAMEWORK}_tp${TP}_conc${CONC}_${RUNNER_NAME}
         export CONC
-        bash ./runners/launch_${RUNNER_NAME}.sh
 
-    if [ ! -f results/${IMAGESHORTNAME}/${EXP_NAME2} ]; then
-      mkdir -p results/${IMAGESHORTNAME}/${EXP_NAME2}
-    fi
-	  mv $RESULT_FILENAME.json results/${IMAGESHORTNAME}/${EXP_NAME2}
-	  mv $RESULT_FILENAME.acc_check results/${IMAGESHORTNAME}/${EXP_NAME2}
-  done
-
-
-    
-
+        if [ ! -f "results/${IMAGESHORTNAME}/${EXP_NAME}/$RESULT_FILENAME.json" ]; then
+          echo "Running experiment to produce results/${EXP_NAME}/${IMAGESHORTNAME}/$RESULT_FILENAME.json"
+          bash ./runners/launch_${RUNNER_NAME}.sh
+          mv $RESULT_FILENAME.json results/${IMAGESHORTNAME}/${EXP_NAME}/
+          #mv $RESULT_FILENAME.acc_check results/${IMAGESHORTNAME}/${EXP_NAME}/
+        else
+          echo "Result file results/${IMAGESHORTNAME}/${EXP_NAME}/$RESULT_FILENAME.json exists already, moving on!"
+        fi
+    done
   done
 done
