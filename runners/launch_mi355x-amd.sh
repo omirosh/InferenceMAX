@@ -14,7 +14,9 @@
 # RESULT_FILENAME
 # HF_TOKEN
 
-HF_HUB_CACHE_MOUNT="/nfsdata/hf_hub_cache-1/"  # Temp solution
+#HF_HUB_CACHE_MOUNT="/nfsdata/hf_hub_cache-1/"  # Temp solution
+HF_HUB_CACHE_MOUNT="/data/hf_home/hub/"
+
 PORT=8888
 
 network_name="bmk-net"
@@ -53,16 +55,22 @@ else
   NUM_PROMPTS=$(( CONC * 10 ))
 fi
 
-git clone https://github.com/kimbochen/bench_serving.git
+if [ ! -d bench_serving ]; then
+  git clone https://github.com/kimbochen/bench_serving.git
+fi
 
+# Something weird about the traffic routing.
+# Looks like the client needs to be run in the same container as the
+# server. Let's do that then!
 set -x
-docker run --rm --network=$network_name --name=$client_name \
--v $GITHUB_WORKSPACE:/workspace/ -w /workspace/ \
--e HF_TOKEN -e PYTHONPYCACHEPREFIX=/tmp/pycache/ \
---entrypoint=python3 \
-$IMAGE \
+#docker run --rm --network=$network_name --name=$client_name \
+#-v $GITHUB_WORKSPACE:/workspace/ -w /workspace/ \
+#-e HF_TOKEN -e PYTHONPYCACHEPREFIX=/tmp/pycache/ \
+#--entrypoint=python3 \
+#$IMAGE \
+docker exec -it bmk-server python3  \
 bench_serving/benchmark_serving.py \
---model=$MODEL --backend=vllm --base-url="http://$server_name:$PORT" \
+--model=$MODEL --backend=vllm --base-url="http://localhost:$PORT" \
 --dataset-name=random \
 --random-input-len=$ISL --random-output-len=$OSL --random-range-ratio=$RANDOM_RANGE_RATIO \
 --num-prompts=$NUM_PROMPTS \
