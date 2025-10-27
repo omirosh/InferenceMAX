@@ -31,8 +31,11 @@ for tp in 8; do
     #export IMAGE=rocm/7.0:rocm7.0_ubuntu_22.04_vllm_0.10.1_instinct_20250915
     #export IMAGESHORTNAME=rocm7.0_ubuntu_22.04_vllm_0.10.1_instinct_20250915
 
-    export IMAGE=rocm/vllm-private:355_wip_311_eccac3268_1023
-    export IMAGESHORTNAME=vllm-private-355_wip_311_eccac3268_1023
+    #export IMAGE=rocm/vllm-private:355_wip_311_eccac3268_1023
+    #export IMAGESHORTNAME=vllm-private-355_wip_311_eccac3268_1023
+
+    export IMAGE=rocm/vllm-private:355_wip_322_3d192ffe9_1026
+    export IMAGESHORTNAME=vllm-private-355_wip_322_3d192ffe9_1026
 
     export MODEL='deepseek-ai/DeepSeek-R1-0528'
     export FRAMEWORK='vllm_dsr1'
