@@ -1,8 +1,8 @@
 #!/usr/bin/bash
 
-sudo sh -c 'echo 0 > /proc/sys/kernel/numa_balancing'
+#sudo sh -c 'echo 0 > /proc/sys/kernel/numa_balancing'
 
-HF_HUB_CACHE_MOUNT="/shareddata/hf_hub_cache_$(hostname)/"
+HF_HUB_CACHE_MOUNT="/vfs/silo/.cache/huggingface/hub/"
 PORT=8888
 
 network_name="bmk-net"
@@ -31,26 +31,39 @@ while IFS= read -r line; do
     fi
 done < <(docker logs -f --tail=0 $server_name 2>&1)
 
-git clone https://github.com/kimbochen/bench_serving.git
+if [[ "$MODEL" == "amd/DeepSeek-R1-0528-MXFP4-Preview" || "$MODEL" == "deepseek-ai/DeepSeek-R1-0528" ]]; then
+  if [[ "$OSL" == "8192" ]]; then
+    NUM_PROMPTS=$(( CONC * 20 ))
+  else
+    NUM_PROMPTS=$(( CONC * 50 ))
+  fi
+else
+  NUM_PROMPTS=$(( CONC * 10 ))
+fi
+
+if [ ! -d bench_serving ]; then
+  git clone https://github.com/kimbochen/bench_serving.git
+fi
 
 set -x
-docker run --rm --network=$network_name --name=$client_name \
--v $GITHUB_WORKSPACE:/workspace/ -w /workspace/ \
--e HF_TOKEN -e PYTHONPYCACHEPREFIX=/tmp/pycache/ \
---entrypoint=python3 \
-$IMAGE \
+docker exec -it bmk-server python3  \
 bench_serving/benchmark_serving.py \
---model=$MODEL --backend=vllm --base-url=http://$server_name:$PORT \
+--model=$MODEL --backend=vllm --base-url="http://localhost:$PORT" \
 --dataset-name=random \
 --random-input-len=$ISL --random-output-len=$OSL --random-range-ratio=$RANDOM_RANGE_RATIO \
---num-prompts=$(( $CONC * 10 )) \
+--num-prompts=$NUM_PROMPTS \
 --max-concurrency=$CONC \
 --request-rate=inf --ignore-eos \
 --save-result --percentile-metrics="ttft,tpot,itl,e2el" \
 --result-dir=/workspace/ --result-filename=$RESULT_FILENAME.json
 
-while [ -n "$(docker ps -aq)" ]; do
-    docker stop $server_name
+if ls gpucore.* 1> /dev/null 2>&1; then
+  echo "gpucore files exist. not good"
+  rm -f gpucore.*
+fi
+
+#3while [ -n "$(docker ps -aq)" ]; do
+    docker container rm -f $server_name
     docker network rm $network_name
-    sleep 5
-done
+    sleep 15
+#done
