@@ -12,6 +12,10 @@ export GITHUB_WORKSPACE=/vfs/silo/omiroshn/InferenceMAX
 for tp in 8; do 
   #for isl_osl in "1024,1024,dsr1" "8192,1024,dsr1" "1024,8192,dsr1"; do
   for isl_osl in "1024,1024,dsr1" "8192,1024,dsr1" "1024,8192,dsr1"; do
+  #for isl_osl in "8192,1024,dsr1" "1024,8192,dsr1"; do
+  #for isl_osl in "1024,1024,dsr1"; do # conc 64 only
+
+
     isl=$( echo ${isl_osl} | cut -f 1 -d ',')
     osl=$( echo ${isl_osl} | cut -f 2 -d ',')
     exp_name=$( echo ${isl_osl} | cut -f 3 -d ',')
@@ -46,7 +50,9 @@ for tp in 8; do
     export RANDOM_RANGE_RATIO=${random_range_ratio}
     export TP_LIST='[4,8]'
     export TP=$tp
-    export CONC_LIST='[4, 8, 16, 32, 64]' 
+    #export CONC_LIST='[4, 8, 16, 32, 64]' 
+    export CONC_LIST='[4, 64]' 
+
     export PORT=8008
 
     export EXP_NAME="${exp_name}"
@@ -54,7 +60,9 @@ for tp in 8; do
 
     mkdir -p results/${IMAGESHORTNAME}/${EXP_NAME}
 
-    for CONC in 4 8 16 32 64; do
+    #for CONC in 4 8 16 32 64; do
+    for CONC in 4 64; do
+
         export RESULT_FILENAME=${EXP_NAME_LONG}_${PRECISION}_${FRAMEWORK}_tp${TP}_conc${CONC}_${RUNNER_NAME}
         export CONC
 
